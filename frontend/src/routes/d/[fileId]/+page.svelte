@@ -21,7 +21,7 @@
     secret = window.location.hash.slice(1);
     if (!secret) {
       stage = 'error';
-      message = 'This link is missing its decryption key.';
+      message = 'This link is missing its decryption key in the hash fragment.';
       return;
     }
 
@@ -35,7 +35,7 @@
         message = 'This file is expired or already used.';
       } else {
         stage = 'error';
-        message = 'Unable to check this file.';
+        message = 'Unable to check this file status.';
       }
     }
   });
@@ -71,14 +71,14 @@
       link.remove();
       window.setTimeout(() => URL.revokeObjectURL(url), 5000);
       stage = 'done';
-      message = `${sanitizeFilename(decrypted.metadata.name)} decrypted.`;
+      message = `${sanitizeFilename(decrypted.metadata.name)} decrypted successfully.`;
     } catch (error) {
       if (error instanceof ApiError && (error.status === 404 || error.status === 410)) {
         stage = 'gone';
         message = 'This file is expired or already used.';
       } else if (error instanceof MalafCryptoError) {
         stage = 'error';
-        message = 'The key is wrong or the encrypted file was tampered with.';
+        message = 'The key is incorrect or the encrypted payload was tampered with.';
       } else {
         stage = 'error';
         message = 'Download failed.';
@@ -93,47 +93,50 @@
 
 <main class="page">
   <section>
-    <p class="eyebrow">Receive</p>
-    <h1>Download the encrypted file once.</h1>
-    <p class="lede">The server will delete the stored ciphertext as soon as this download is claimed.</p>
+    <p class="eyebrow">Secure Handoff</p>
+    <h1>Download your encrypted file.</h1>
+    <p class="lede">The server will immediately purge the stored ciphertext as soon as this download is claimed.</p>
   </section>
 
   <section class="workspace">
     <div class="tool">
       <div class="tool-header">
         <div>
-          <h2>File</h2>
-          <p class="muted">{fileID}</p>
+          <h2>File Package</h2>
+          <p class="muted" style="font-family: monospace; font-size: 0.85rem;">{fileID}</p>
         </div>
         {#if stage === 'checking' || stage === 'downloading' || stage === 'decrypting'}
-          <Loader2 size={22} />
+          <Loader2 size={22} style="animation: spin 1s linear infinite; color: var(--accent);" />
         {:else if stage === 'done'}
-          <CheckCircle2 size={22} />
+          <CheckCircle2 size={22} style="color: var(--ok)" />
         {:else if stage === 'gone' || stage === 'error'}
-          <ShieldAlert size={22} />
+          <ShieldAlert size={22} style="color: var(--danger)" />
         {:else}
-          <FileKey2 size={22} />
+          <FileKey2 size={22} style="color: var(--accent)" />
         {/if}
       </div>
 
       <div class="tool-body download-stage">
         {#if stage === 'checking'}
-          <p class="muted">Checking availability.</p>
+          <div style="display: flex; align-items: center; gap: 12px; color: var(--muted);">
+            <Loader2 size={18} style="animation: spin 1s linear infinite;" />
+            <span>Validating encrypted handoff package...</span>
+          </div>
         {:else if stage === 'ready'}
           <div class="status-row">
             <div>
-              <p class="file-name">Encrypted payload</p>
-              <p class="file-meta">{formatBytes(encryptedSize)}</p>
+              <p class="file-name">Encrypted Payload</p>
+              <p class="file-meta">{formatBytes(encryptedSize)} · Opaque Ciphertext</p>
             </div>
             <button class="button" type="button" on:click={downloadAndDecrypt}>
               <Download size={18} />
-              <span>Download</span>
+              <span>Decrypt & Download</span>
             </button>
           </div>
         {:else if stage === 'downloading' || stage === 'decrypting'}
           <div class="progress" aria-live="polite">
             <div class="progress-label">
-              <span>{progressTitle}</span>
+              <span>{progressTitle}...</span>
               <span>{progressValue}%</span>
             </div>
             <div class="progress-track">
@@ -142,23 +145,55 @@
           </div>
         {:else if stage === 'done'}
           <div class="notice ok">
-            <CheckCircle2 size={18} /> {message}
+            <CheckCircle2 size={20} style="margin-top: 2px;" />
+            <div>
+              <strong>Decryption Complete</strong>
+              <p style="margin: 4px 0 0 0; font-size: 0.9rem;">{message}</p>
+            </div>
           </div>
         {:else if stage === 'gone'}
           <div class="notice error" role="alert">
-            <AlertTriangle size={18} /> {message}
+            <AlertTriangle size={24} style="margin-top: 4px;" />
+            <div>
+              <strong style="font-size: 1.05rem;">Link Expired or Already Claimed</strong>
+              <p style="margin: 6px 0 0 0; font-size: 0.9rem; line-height: 1.5;">
+                For ultimate privacy, Malaf enforces a strict one-time claim policy. As soon as a file download is initiated, the encrypted payload is permanently deleted from the server.
+              </p>
+              <p style="margin: 8px 0 0 0; font-size: 0.85rem; opacity: 0.8;">
+                If you haven't downloaded this, the link may have expired (30-minute limit) or been accessed already.
+              </p>
+            </div>
           </div>
         {:else if stage === 'error'}
           <div class="notice error" role="alert">
-            <AlertTriangle size={18} /> {message}
+            <AlertTriangle size={20} style="margin-top: 2px;" />
+            <div>
+              <strong>Handoff Error</strong>
+              <p style="margin: 4px 0 0 0; font-size: 0.9rem;">{message}</p>
+            </div>
           </div>
         {/if}
       </div>
     </div>
 
     <aside class="side-panel">
-      <p class="notice">Anyone with the full URL has the decryption key. Share it through a channel you trust.</p>
-      <p class="notice">If decryption fails, the first download attempt may already have consumed the file.</p>
+      <div class="tool">
+        <div class="tool-body fact-list">
+          <div class="fact">
+            <ShieldAlert size={18} />
+            <span>Decryption keys stay in the URL fragment (`#`) and are never sent to the server. Verification happens locally.</span>
+          </div>
+        </div>
+      </div>
+      <p class="notice">
+        Note: If decryption fails, the first download attempt may already have consumed and purged the file from storage.
+      </p>
     </aside>
   </section>
 </main>
+
+<style>
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+</style>
