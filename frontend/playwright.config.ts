@@ -1,4 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+
+const localGo = join('..', '.tools', 'go', 'bin', process.platform === 'win32' ? 'go.exe' : 'go');
+const goCommand = existsSync(localGo) ? `"${localGo}" run .` : 'go run .';
 
 export default defineConfig({
   testDir: './e2e',
@@ -12,7 +17,7 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: 'go run .',
+      command: goCommand,
       cwd: '../backend',
       url: 'http://127.0.0.1:8081/api/health',
       timeout: 30_000,

@@ -4,10 +4,7 @@ import { promises as fs } from 'node:fs';
 test('uploads, downloads, decrypts, and rejects a second download', async ({ page, context }) => {
   await page.goto('/');
 
-  const chooserPromise = page.waitForEvent('filechooser');
-  await page.getByRole('button', { name: /choose file/i }).click();
-  const chooser = await chooserPromise;
-  await chooser.setFiles({
+  await page.locator('input[type="file"]').setInputFiles({
     name: 'hello.txt',
     mimeType: 'text/plain',
     buffer: Buffer.from('hello malaf')
@@ -27,6 +24,7 @@ test('uploads, downloads, decrypts, and rejects a second download', async ({ pag
   expect(path).toBeTruthy();
   await expect(fs.readFile(path!, 'utf8')).resolves.toBe('hello malaf');
 
-  await receiver.goto(shareLink);
-  await expect(receiver.getByText(/expired or already used/i)).toBeVisible();
+  const secondAttempt = await context.newPage();
+  await secondAttempt.goto(shareLink);
+  await expect(secondAttempt.getByText(/expired or already used/i)).toBeVisible();
 });

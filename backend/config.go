@@ -7,23 +7,23 @@ import (
 )
 
 const (
-	defaultAddr             = "127.0.0.1:8080"
-	defaultFilesDir         = "/var/lib/malaf/files"
-	defaultClaimedDir       = "/var/lib/malaf/claimed"
-	defaultMaxUploadBytes   = int64(100 * 1024 * 1024)
-	defaultFileTTL          = 30 * time.Minute
-	defaultCleanupInterval  = 60 * time.Second
-	defaultUploadsPerHour   = 5
+	defaultAddr            = "127.0.0.1:8080"
+	defaultFilesDir        = "/var/lib/malaf/files"
+	defaultClaimedDir      = "/var/lib/malaf/claimed"
+	defaultMaxUploadBytes  = int64(100 * 1024 * 1024)
+	defaultFileTTL         = 30 * time.Minute
+	defaultCleanupInterval = 60 * time.Second
+	defaultUploadsPerHour  = 5
 )
 
 type Config struct {
-	Addr             string
-	FilesDir         string
-	ClaimedDir       string
-	MaxUploadBytes   int64
-	FileTTL          time.Duration
-	CleanupInterval  time.Duration
-	UploadsPerHour   int
+	Addr              string
+	FilesDir          string
+	ClaimedDir        string
+	MaxUploadBytes    int64
+	FileTTL           time.Duration
+	CleanupInterval   time.Duration
+	UploadsPerHour    int
 	TrustProxyHeaders bool
 }
 
