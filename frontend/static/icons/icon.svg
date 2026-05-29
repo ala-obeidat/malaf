@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Malaf icon">
+  <rect width="512" height="512" rx="96" fill="#0f766e"/>
+  <path d="M256 76 380 128v98c0 88-51 164-124 210-73-46-124-122-124-210v-98L256 76Z" fill="#ffffff"/>
+  <path d="M222 258h68v92h-68z" fill="#0f766e"/>
+  <path d="M210 250v-32c0-28 19-50 46-50s46 22 46 50v32h-36v-32c0-9-4-16-10-16s-10 7-10 16v32h-36Z" fill="#0f766e"/>
+</svg>
